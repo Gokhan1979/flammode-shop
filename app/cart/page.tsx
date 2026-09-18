@@ -11,17 +11,11 @@ export default function Cart(){
   }
   const total = cart.reduce((s,p)=>s+Number(p.price),0)
 
-  const handleCheckout = () => {
-    const orderText = cart.map(p => `${p.name} - $${p.price}`).join('%0A')
-    const message = `Hello Flammode! I want to order:%0A${orderText}%0A%0ATotal: $${total.toFixed(2)}`
-    // CHANGE THIS NUMBER TO YOUR WHATSAPP
-    window.open(`https://wa.me/905000000000?text=${message}`, '_blank')
-  }
-
   return(
     <div className="min-h-screen bg-black text-white p-6">
       <a href="/" className="text-zinc-500">← Back to Shop</a>
       <h1 className="text-3xl font-black mt-6">YOUR CART ({cart.length})</h1>
+      
       <div className="mt-8 space-y-4">
         {cart.map((p,i)=>(
           <div key={i} className="flex gap-4 bg-zinc-900 p-4 rounded">
@@ -32,10 +26,14 @@ export default function Cart(){
         ))}
         {cart.length===0 && <p className="text-zinc-600">Cart empty - go shopping!</p>}
       </div>
+      
       {cart.length>0 && (
         <div className="mt-8 border-t border-zinc-800 pt-6">
           <p className="text-xl">Total: ${total.toFixed(2)}</p>
-          <button onClick={handleCheckout} className="mt-4 bg-white text-black px-8 py-3 rounded-full font-bold w-full">CHECKOUT</button>
+          <button onClick={()=>alert('FLAMMODE COMING SOON 🔥\n\nProducts not in stock yet! We are launching very soon. Follow us on Instagram for launch date.')} className="mt-4 bg-zinc-800 text-zinc-500 px-8 py-3 rounded-full font-bold w-full cursor-not-allowed">
+            COMING SOON - NOT FOR SALE YET
+          </button>
+          <p className="text-zinc-600 text-sm mt-3 text-center">We are not taking orders yet. Launching soon! 🔥</p>
         </div>
       )}
     </div>
