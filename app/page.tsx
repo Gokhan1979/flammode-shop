@@ -48,7 +48,7 @@ export default function Home(){
       <header className="flex justify-between p-6 border-b border-zinc-800">
         <h1 className="text-2xl font-black tracking-widest">FLAMMODE</h1>
         <div className="flex gap-4 text-sm items-center">
-          {user && cartCount > 0 && <a href="/cart" className="hover:text-zinc-400">CART ({cartCount})</a>}
+          {user && <a href="/cart" className="hover:text-zinc-400">CART ({cartCount})</a>}
           {user ? <><a href="/profile" className="hover:text-zinc-400">Profile</a><a href="/admin" className="hover:text-zinc-400">Admin</a><button onClick={handleLogout} className="hover:text-zinc-400">Logout</button></> : <a href="/auth" className="bg-white text-black px-4 py-1 rounded-full font-bold">SIGN IN</a>}
         </div>
       </header>
