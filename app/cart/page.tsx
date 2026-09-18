@@ -2,13 +2,27 @@
 import { useEffect, useState } from 'react'
 export default function Cart(){
   const [cart,setCart]=useState<any[]>([])
-  useEffect(()=>{setCart(JSON.parse(localStorage.getItem('cart')||'[]'))},[])
+  
+  useEffect(()=>{
+    // CHECK IF LOGGED IN - if not, clear cart
+    const user = localStorage.getItem('user')
+    if(!user){
+      localStorage.removeItem('cart')
+      setCart([])
+      return
+    }
+    setCart(JSON.parse(localStorage.getItem('cart')||'[]'))
+  },[])
+  
   const remove = (i:number)=>{
     const newCart=[...cart]
     newCart.splice(i,1)
     setCart(newCart)
     localStorage.setItem('cart', JSON.stringify(newCart))
+    // update navbar count
+    window.dispatchEvent(new Event('storage'))
   }
+  
   const total = cart.reduce((s,p)=>s+Number(p.price),0)
 
   return(
