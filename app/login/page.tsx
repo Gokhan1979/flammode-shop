@@ -1,11 +1,18 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage(){
   const [email,setEmail]=useState('')
   const [password,setPassword]=useState('')
   const router = useRouter()
+
+  // THIS FIXES YOUR CART BUG - clears cart when you go to login page (after logout)
+  useEffect(()=>{
+    localStorage.removeItem('cart')
+    localStorage.removeItem('cartItems')
+    localStorage.removeItem('flammode-cart')
+  },[])
 
   const handleLogin = () => {
     if(!email || !password) return alert('Enter email and password')
