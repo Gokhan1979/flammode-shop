@@ -10,6 +10,14 @@ export default function Cart(){
     localStorage.setItem('cart', JSON.stringify(newCart))
   }
   const total = cart.reduce((s,p)=>s+Number(p.price),0)
+
+  const handleCheckout = () => {
+    const orderText = cart.map(p => `${p.name} - $${p.price}`).join('%0A')
+    const message = `Hello Flammode! I want to order:%0A${orderText}%0A%0ATotal: $${total.toFixed(2)}`
+    // CHANGE THIS NUMBER TO YOUR WHATSAPP
+    window.open(`https://wa.me/905000000000?text=${message}`, '_blank')
+  }
+
   return(
     <div className="min-h-screen bg-black text-white p-6">
       <a href="/" className="text-zinc-500">← Back to Shop</a>
@@ -27,7 +35,7 @@ export default function Cart(){
       {cart.length>0 && (
         <div className="mt-8 border-t border-zinc-800 pt-6">
           <p className="text-xl">Total: ${total.toFixed(2)}</p>
-          <button className="mt-4 bg-white text-black px-8 py-3 rounded-full font-bold w-full">CHECKOUT</button>
+          <button onClick={handleCheckout} className="mt-4 bg-white text-black px-8 py-3 rounded-full font-bold w-full">CHECKOUT</button>
         </div>
       )}
     </div>
