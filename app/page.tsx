@@ -40,7 +40,7 @@ export default function Home(){
     setCartCount(0)
     setUser(null)
     await supabase.auth.signOut()
-    window.location.href = '/'
+    window.location.href = '/auth'
   }
 
   return(
