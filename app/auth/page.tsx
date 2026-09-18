@@ -35,7 +35,7 @@ export default function AuthPage(){
     setMessage('')
     try{
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset`
+        redirectTo: `https://flammode-shopping.vercel.app/auth/reset`
       })
       if(error) throw error
       setMessage('Reset link sent! Check your email.')
