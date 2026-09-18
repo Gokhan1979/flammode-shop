@@ -58,6 +58,7 @@ export default function Home(){
               </button>
               {menuOpen && (
                 <div className="absolute right-0 top-10 w-56 bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden z-50">
+                  <a href="/orders" className="block px-4 py-3 hover:bg-zinc-800">My Orders</a>
                   <a href="/help" className="block px-4 py-3 hover:bg-zinc-800">Help Center</a>
                   <a href="/settings" className="block px-4 py-3 hover:bg-zinc-800">Settings</a>
                   <button onClick={handleLogout} className="w-full text-left px-4 py-3 hover:bg-zinc-800 border-t border-zinc-800">Logout</button>
