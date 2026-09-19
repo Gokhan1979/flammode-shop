@@ -7,7 +7,7 @@ export default function LoginPage(){
   const [password,setPassword]=useState('')
   const router = useRouter()
 
-  // THIS FIXES YOUR CART BUG - clears cart when you go to login page (after logout)
+  // Clears cart when you go to login page (after logout)
   useEffect(()=>{
     localStorage.removeItem('cart')
     localStorage.removeItem('cartItems')
@@ -16,8 +16,12 @@ export default function LoginPage(){
 
   const handleLogin = () => {
     if(!email || !password) return alert('Enter email and password')
-    // For now just fake login
-    alert('Logged in! (front-end only for now)')
+    
+    // Save login status
+    localStorage.setItem('isLoggedIn', 'true')
+    localStorage.setItem('userEmail', email)
+    
+    alert('Logged in!')
     router.push('/')
   }
 
