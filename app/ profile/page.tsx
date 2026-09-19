@@ -13,7 +13,7 @@ export default function ProfilePage() {
     name:"", surname:"", postcode:"", street:"", town:"", city:"", country:"UK", avatar_url:""
   })
 
-  const API_KEY = "62702f94-240d-465c-9c62-b4193e75e586"
+  const API_KEY = "UCoNlu507k-SZpdmYc82rg54138"
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
