@@ -1,115 +1,91 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
 export default function AuthPage(){
-  const [view,setView]=useState<'login'|'signup'|'forgot-email'|'reset-code'>('login')
+  const [mode,setMode]=useState('login')
   const [email,setEmail]=useState('')
   const [password,setPassword]=useState('')
-  const [confirmPassword,setConfirmPassword]=useState('')
-  const [code,setCode]=useState('')
-  const [showPassword,setShowPassword]=useState(false)
+  const [newPass,setNewPass]=useState('')
+  const [confirm,setConfirm]=useState('')
+  const [msg,setMsg]=useState('')
   const [loading,setLoading]=useState(false)
-  const [message,setMessage]=useState('')
 
-  const handleLogin = async(e:React.FormEvent)=>{
+  useEffect(()=>{
+    // if user clicked reset link from email, supabase puts token in URL
+    const hash = window.location.hash
+    if(hash && hash.includes('access_token')){
+      setMode('reset')
+    }
+  },[])
+
+  const onSubmit = async(e:any)=>{
     e.preventDefault()
-    setLoading(true); setMessage('')
+    if(!email && mode!=='reset'){ setMsg('Please enter your email first'); return }
+    setLoading(true); setMsg('')
     try{
-      if(view==='signup'){
-        const {error} = await supabase.auth.signUp({email,password})
-        if(error) throw error
-        setMessage('Check your email to confirm!')
-      }else{
-        const {error} = await supabase.auth.signInWithPassword({email,password})
+      if(mode==='login'){
+        const {error}=await supabase.auth.signInWithPassword({email,password})
         if(error) throw error
         window.location.href='/'
       }
-    }catch(err:any){ setMessage(err.message) }
-    setLoading(false)
-  }
-
-  const handleForgotEmail = async(e:React.FormEvent)=>{
-    e.preventDefault()
-    setLoading(true); setMessage('')
-    try{
-      const {error} = await supabase.auth.resetPasswordForEmail(email)
-      if(error) throw error
-      setMessage('Email sent! Check your inbox for reset code.')
-      setTimeout(()=>{ setView('reset-code'); setMessage('Enter code from email and new password') },1500)
-    }catch(err:any){ setMessage(err.message) }
-    setLoading(false)
-  }
-
-  const handleResetCode = async(e:React.FormEvent)=>{
-    e.preventDefault()
-    setLoading(true); setMessage('')
-    if(password !== confirmPassword){ setMessage('Passwords do not match!'); setLoading(false); return }
-    try{
-      const {error:verifyError} = await supabase.auth.verifyOtp({email, token:code, type:'recovery'})
-      if(verifyError) throw verifyError
-      const {error:updateError} = await supabase.auth.updateUser({password})
-      if(updateError) throw updateError
-      setMessage('Password reset successful! Go back to login.')
-      setTimeout(()=>{ setView('login'); setMessage(''); setPassword(''); setConfirmPassword(''); setCode('') },2000)
-    }catch(err:any){ setMessage(err.message) }
+      if(mode==='signup'){
+        const {error}=await supabase.auth.signUp({email,password})
+        if(error) throw error
+        setMsg('Check your email to confirm account!')
+      }
+      if(mode==='forgot'){
+        const {error}=await supabase.auth.resetPasswordForEmail(email.trim(),{
+          redirectTo: `${window.location.origin}/auth`
+        })
+        if(error) throw error
+        setMsg('Email sent! Check your inbox - click link to reset password')
+      }
+      if(mode==='reset'){
+        if(newPass!==confirm){ throw new Error('Passwords do not match') }
+        const {error}=await supabase.auth.updateUser({password:newPass})
+        if(error) throw error
+        setMsg('Password updated! Redirecting to login...')
+        setTimeout(()=>{ window.location.href='/auth'; setMode('login') },2000)
+      }
+    }catch(err:any){ setMsg(err.message) }
     setLoading(false)
   }
 
   return(
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
       <div className="w-full max-w-sm bg-zinc-900 p-8 rounded-2xl">
+        <h1 className="text-2xl font-black mb-1">
+          {mode==='login' && 'WELCOME BACK'}
+          {mode==='signup' && 'JOIN FLAMMODE'}
+          {mode==='forgot' && 'FORGOT PASSWORD'}
+          {mode==='reset' && 'SET NEW PASSWORD'}
+        </h1>
+        <p className="text-zinc-500 text-sm mb-6">
+          {mode==='forgot' && 'Enter email address - we send reset link'}
+          {mode==='reset' && 'Enter new password + confirm'}
+        </p>
 
-        {/* LOGIN / SIGNUP */}
-        {(view==='login' || view==='signup') && (
-          <>
-            <h1 className="text-3xl font-black mb-2">{view==='signup'? 'JOIN FLAMMODE' : 'WELCOME BACK'}</h1>
-            <form onSubmit={handleLogin} className="space-y-4 mt-6">
-              <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Email address" required className="w-full bg-zinc-800 p-3 rounded-xl outline-none" />
-              <div className="relative">
-                <input value={password} onChange={e=>setPassword(e.target.value)} type={showPassword? "text" : "password"} placeholder="Password" required className="w-full bg-zinc-800 p-3 pr-12 rounded-xl outline-none" />
-                <button type="button" onClick={()=>setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xl">{showPassword? '🙈' : '👁️'}</button>
-              </div>
-              {message && <p className="text-sm text-center text-yellow-400">{message}</p>}
-              <button type="submit" disabled={loading} className="w-full bg-white text-black py-3 rounded-full font-bold">{loading? 'Loading...' : view==='signup'? 'CREATE ACCOUNT' : 'SIGN IN'}</button>
-            </form>
-            <div className="flex flex-col gap-3 mt-6 text-sm text-center">
-              <button onClick={()=>setView('forgot-email')} className="text-zinc-400 hover:text-white">Forgot password?</button>
-              <button onClick={()=>setView(view==='login'?'signup':'login')} className="text-zinc-500 hover:text-white">{view==='signup'? 'Already have account? Sign In' : "Don't have account? Sign Up"}</button>
-            </div>
-          </>
-        )}
+        <form onSubmit={onSubmit} className="space-y-4">
+          {mode!=='reset' && <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Email address" required className="w-full bg-zinc-800 p-3 rounded-xl outline-none text-white" />}
+          {(mode==='login'||mode==='signup') && <input value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder="Password" required className="w-full bg-zinc-800 p-3 rounded-xl outline-none" />}
+          {mode==='reset' && (
+            <>
+              <input value={newPass} onChange={e=>setNewPass(e.target.value)} type="password" placeholder="New password" required className="w-full bg-zinc-800 p-3 rounded-xl outline-none" />
+              <input value={confirm} onChange={e=>setConfirm(e.target.value)} type="password" placeholder="Confirm new password" required className="w-full bg-zinc-800 p-3 rounded-xl outline-none" />
+            </>
+          )}
+          {msg && <div className="bg-yellow-900/30 border border-yellow-600/30 text-yellow-300 text-sm p-3 rounded-xl text-center">{msg}</div>}
+          <button type="submit" disabled={loading} className="w-full bg-white text-black py-3 rounded-full font-bold">
+            {loading? 'Please wait...' : mode==='login'?'SIGN IN' : mode==='signup'?'CREATE ACCOUNT' : mode==='forgot'?'SEND RESET EMAIL' : 'SAVE NEW PASSWORD'}
+          </button>
+        </form>
 
-        {/* STEP 1 - FORGOT EMAIL */}
-        {view==='forgot-email' && (
-          <>
-            <h1 className="text-2xl font-black mb-2">FORGOT PASSWORD</h1>
-            <p className="text-zinc-500 text-sm mb-6">Enter your email address</p>
-            <form onSubmit={handleForgotEmail} className="space-y-4">
-              <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Enter email address" required className="w-full bg-zinc-800 p-3 rounded-xl outline-none" />
-              {message && <p className="text-sm text-center text-yellow-400">{message}</p>}
-              <button type="submit" disabled={loading} className="w-full bg-white text-black py-3 rounded-full font-bold">{loading? 'Sending...' : 'SEND RESET CODE'}</button>
-            </form>
-            <button onClick={()=>setView('login')} className="text-zinc-500 hover:text-white text-sm mt-6 w-full text-center">Back to Login</button>
-          </>
-        )}
-
-        {/* STEP 2 - RESET CODE + NEW PASSWORD */}
-        {view==='reset-code' && (
-          <>
-            <h1 className="text-2xl font-black mb-2">RESET PASSWORD</h1>
-            <p className="text-zinc-500 text-sm mb-6">Email sent! Check inbox. Enter code + new password</p>
-            <form onSubmit={handleResetCode} className="space-y-4">
-              <input value={code} onChange={e=>setCode(e.target.value)} placeholder="Enter reset code from email" required className="w-full bg-zinc-800 p-3 rounded-xl outline-none" />
-              <input value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder="New password" required className="w-full bg-zinc-800 p-3 rounded-xl outline-none" />
-              <input value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} type="password" placeholder="Confirm new password" required className="w-full bg-zinc-800 p-3 rounded-xl outline-none" />
-              {message && <p className="text-sm text-center text-yellow-400">{message}</p>}
-              <button type="submit" disabled={loading} className="w-full bg-white text-black py-3 rounded-full font-bold">{loading? 'Resetting...' : 'RESET PASSWORD'}</button>
-            </form>
-            <button onClick={()=>setView('login')} className="text-zinc-500 hover:text-white text-sm mt-6 w-full text-center">Back to Login</button>
-          </>
-        )}
-
+        <div className="mt-6 text-center text-sm space-y-2">
+          {mode==='login' && <><button onClick={()=>{setMode('forgot'); setMsg('')}} className="block w-full text-zinc-400">Forgot password?</button><button onClick={()=>{setMode('signup'); setMsg('')}} className="block w-full text-zinc-500">Don't have account? Sign Up</button></>}
+          {mode==='signup' && <button onClick={()=>{setMode('login'); setMsg('')}} className="text-zinc-500">Already have account? Sign In</button>}
+          {mode==='forgot' && <button onClick={()=>{setMode('login'); setMsg('')}} className="text-zinc-500">Back to login</button>}
+        </div>
       </div>
     </div>
   )
